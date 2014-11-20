@@ -264,7 +264,7 @@ public class ClassMap
      * from public superclasses and interfaces (if they exist). Basically
      * upcasts every method to the nearest acccessible method.
      */
-    private static Method[] getAccessibleMethods( Class<?> clazz )
+    static Method[] getAccessibleMethods( Class<?> clazz )
     {
         Method[] methods = clazz.getMethods();
 
@@ -320,7 +320,7 @@ public class ClassMap
      * @param upcastCount current number of methods we have matched
      * @return count of matched methods
      */
-    private static int getAccessibleMethods( Class<?> clazz, MethodInfo[] methodInfos, int upcastCount )
+    static int getAccessibleMethods( Class<?> clazz, MethodInfo[] methodInfos, int upcastCount )
     {
         int l = methodInfos.length;
 
@@ -503,7 +503,7 @@ public class ClassMap
     /**
      * Used for the iterative discovery process for public methods.
      */
-    private static final class MethodInfo
+    static final class MethodInfo
     {
         Method method;
         String name;
