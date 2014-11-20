@@ -18,13 +18,13 @@ package org.codehaus.plexus.interpolation.reflection;
 
 import org.codehaus.plexus.interpolation.util.StringUtils;
 
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.WeakHashMap;
 
 /**
  * Builds a path that will resolve a given expression
@@ -38,13 +38,6 @@ public class ReflectionPathBuilder
     private static final Class<?>[] CLASS_ARGS = new Class[0];
 
     private static final Object[] OBJECT_ARGS = new Object[0];
-
-    /**
-     * Use a WeakHashMap here, so the keys (Class objects) can be garbage collected.
-     * This approach prevents permgen space overflows due to retention of discarded
-     * classloaders.
-     */
-    private static final Map<Class<?>, WeakReference<ClassMap>> classMaps = new WeakHashMap<Class<?>, WeakReference<ClassMap>>();
 
     private ReflectionPathBuilder()
     {
@@ -154,37 +147,112 @@ public class ReflectionPathBuilder
     private static Method findMethod( Object currentObject, String token )
         throws MethodMap.AmbiguousException
     {
-        ClassMap classMap = getClassMap( currentObject.getClass() );
 
         String methodBase = StringUtils.capitalizeFirstLetter( token );
 
-        String methodName = "get" + methodBase;
+        return populateMethodCache( currentObject.getClass(), methodBase );
 
-        Method method = classMap.findMethod( methodName, CLASS_ARGS );
-
-        if ( method == null )
-        {
-            // perhaps this is a boolean property??
-            methodName = "is" + methodBase;
-
-            method = classMap.findMethod( methodName, CLASS_ARGS );
-        }
-        return method;
     }
 
-    private static ClassMap getClassMap( Class<?> clazz )
+    private static Method populateMethodCache( Class clazz, String methodBase )
+        throws MethodMap.AmbiguousException
     {
-        WeakReference<ClassMap> ref = classMaps.get( clazz);
+        MethodMap methodMap = new MethodMap();
 
-        ClassMap classMap;
+        String getter = "get" + methodBase;
+        String isMethod = "is" + methodBase;
 
-        if ( ref == null || (classMap = ref.get()) == null )
+        Set<String> desiredMethods = new HashSet<String>(  );
+        desiredMethods.add( getter );
+        desiredMethods.add( isMethod );
+        Method[] methods = getAccessibleMethods( clazz, desiredMethods );
+
+        for ( Method method : methods )
         {
-            classMap = new ClassMap( clazz );
+            /*
+             *  now get the 'public method', the method declared by a
+             *  public interface or class. (because the actual implementing
+             *  class may be a facade...
+             */
 
-            classMaps.put( clazz, new WeakReference<ClassMap>(classMap) );
+            Method publicMethod = ClassMap.getPublicMethod( method );
+
+            /*
+             *  it is entirely possible that there is no public method for
+             *  the methods of this class (i.e. in the facade, a method
+             *  that isn't on any of the interfaces or superclass
+             *  in which case, ignore it.  Otherwise, map and cache
+             */
+
+            if ( publicMethod != null )
+            {
+                methodMap.add( publicMethod );
+            }
         }
 
-        return classMap;
+        final Method method = methodMap.find( getter, CLASS_ARGS );
+        if (method != null) return method;
+        return methodMap.find( isMethod, CLASS_ARGS );
     }
+
+    /**
+     * Retrieves public methods for a class. In case the class is not
+     * public, retrieves methods with same signature as its public methods
+     * from public superclasses and interfaces (if they exist). Basically
+     * upcasts every method to the nearest acccessible method.
+     */
+    static Method[] getAccessibleMethods( Class<?> clazz, Set<String> desiredMethods )
+    {
+        List<Method> toUse = new ArrayList<Method>(  );
+        for ( Method method : clazz.getMethods() )
+        {
+            if (desiredMethods.contains(  method.getName())) toUse.add( method);
+        }
+        Method[] methods = toUse.toArray( new Method[toUse.size()] );
+
+
+        /*
+         *  Short circuit for the (hopefully) majority of cases where the
+         *  clazz is public
+         */
+
+        if ( Modifier.isPublic( clazz.getModifiers() ) )
+        {
+            return methods;
+        }
+
+        /*
+         *  No luck - the class is not public, so we're going the longer way.
+         */
+
+        ClassMap.MethodInfo[] methodInfos = new ClassMap.MethodInfo[methods.length];
+
+        for ( int i = methods.length; i-- > 0; )
+        {
+            methodInfos[i] = new ClassMap.MethodInfo( methods[i] );
+        }
+
+        int upcastCount = ClassMap.getAccessibleMethods( clazz, methodInfos, 0 );
+
+        /*
+         *  Reallocate array in case some method had no accessible counterpart.
+         */
+
+        if ( upcastCount < methods.length )
+        {
+            methods = new Method[upcastCount];
+        }
+
+        int j = 0;
+        for ( ClassMap.MethodInfo methodInfo : methodInfos )
+        {
+            if ( methodInfo.upcast )
+            {
+                methods[j++] = methodInfo.method;
+            }
+        }
+        return methods;
+    }
+
+
 }
