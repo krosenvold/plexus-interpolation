@@ -17,6 +17,8 @@ package org.codehaus.plexus.interpolation.fixed;
  */
 
 
+import org.codehaus.plexus.interpolation.ValueSource;
+
 import java.util.Properties;
 
 /**
@@ -28,7 +30,7 @@ import java.util.Properties;
  * @author jdcasey
  * @version $Id$
  */
-public class PropertiesBasedValueSource
+public class PropertiesValueSource
     implements FixedValueSource
 {
 
@@ -40,11 +42,14 @@ public class PropertiesBasedValueSource
      *
      * @param properties The properties instance to wrap.
      */
-    public PropertiesBasedValueSource( Properties properties )
+    public PropertiesValueSource( Properties properties )
     {
         this.properties = properties;
     }
 
+    public static FixedValueSource asPropertiesValueSource(Properties properties){
+        return new PropertiesValueSource( properties );
+    }
     /**
      * @return the result of {@link java.util.Properties#getProperty(String)}, using the
      * entire expression as the key to lookup. If the wrapped properties instance

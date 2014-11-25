@@ -70,40 +70,37 @@ public class ReflectionPathBuilderTest
     public void testCreatePath()
         throws Exception
     {
-        FirstResult path = ReflectionPathBuilder.createPath( "az.bar", false, new TC1() );
-        assertEquals( "Baz", path.getValue());
-        PathElement path1 = path.getPath();
-        assertEquals( "Zap", path1.evaluate( new TC1B() ) );
-        assertEquals( null, path1.evaluate( new TC1C() ) );
+        PathElement path = ReflectionPathBuilder.createPath( "az.bar", false, TC1.class );
+        assertEquals( "Baz",  path.evaluate( new TC1() ));
+        assertEquals( "Zap", path.evaluate( new TC1B() ) );
+        assertEquals( null, path.evaluate( new TC1C() ) );
     }
 
     public void testMissingExpr()
         throws Exception
     {
-        FirstResult path = ReflectionPathBuilder.createPath( "az.baz", false, new TC1() );
-        assertNull( path );
+        PathElement path = ReflectionPathBuilder.createPath( "az.baz", false, TC1.class );
+        assertSame( PathElement.UNRESOLVABLE, path );
     }
 
     public void testPathcalculatedFromInnerClass()
         throws Exception
     {
-        FirstResult path = ReflectionPathBuilder.createPath( "child.value", false, new InnerClassParent2());
+        PathElement path = ReflectionPathBuilder.createPath( "child.value", false, InnerClassParent2.class);
         assertNotNull( path );
-        assertEquals( "fzz", path.getValue());
-        PathElement path1 = path.getPath();
-        assertNotNull( path1 );
-        assertEquals( "aValue", path1.evaluate( new InnerClassParent() ) );
+        assertEquals( "fzz", path.evaluate( new InnerClassParent2() ));
+        assertNotNull( path );
+        assertEquals( "aValue", path.evaluate( new InnerClassParent() ) );
     }
 
     public void testExpressionEvaluatesToNull()
         throws Exception
     {
-        FirstResult path = ReflectionPathBuilder.createPath( "az.bar", false, new TC1C() );
+        PathElement path = ReflectionPathBuilder.createPath( "az.bar", false, TC1C.class );
         assertNotNull( path );
-        assertNull( path.getValue());
-        PathElement path1 = path.getPath();
-        assertNotNull( path1 );
-        assertEquals( "Baz", path1.evaluate( new TC1() ));
+        assertNull( path.evaluate( new TC1C() ));
+        assertNotNull( path );
+        assertEquals( "Baz", path.evaluate( new TC1() ));
     }
 
 }

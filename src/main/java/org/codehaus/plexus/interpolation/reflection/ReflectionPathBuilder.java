@@ -18,6 +18,7 @@ package org.codehaus.plexus.interpolation.reflection;
 
 import org.codehaus.plexus.interpolation.util.StringUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -37,72 +38,69 @@ public class ReflectionPathBuilder
 {
     private static final Class<?>[] CLASS_ARGS = new Class[0];
 
-    private static final Object[] OBJECT_ARGS = new Object[0];
-
     private ReflectionPathBuilder()
     {
     }
 
-    public static FirstResult createPath( String expression, boolean trimRootToken, Object root )
-        throws Exception
+    public static PathElement createPath( String expression, boolean trimRootToken, Class rootClass )
+        throws IllegalAccessException, MethodMap.AmbiguousException, InvocationTargetException
     {
         if ( trimRootToken )
         {
             expression = expression.substring( expression.indexOf( '.' ) + 1 );
         }
 
-        List<Method> result = new ArrayList<Method>();
-        final Object o = evaluate( expression, root, result );
-        if ( o == null && result.size() == 0 )
+        List<Method> result = evaluate( expression, rootClass );
+        if ( result == null || result.size() == 0 )
         {
-            return null;
+            return PathElement.UNRESOLVABLE;
         }
         PathElement pathElement = null;
         for ( int i = result.size() - 1; i >= 0; i-- )
         {
             pathElement = PathElement.createPathElement( result.get( i ), pathElement );
         }
-        return new FirstResult( pathElement, o );
+        return pathElement;
     }
 
-    private static Object evaluate( String expression, Object root, List<Method> result )
-        throws Exception
+    private static List<Method> evaluate( String expression, Class rootClass )
+        throws InvocationTargetException, IllegalAccessException, MethodMap.AmbiguousException
     {
-        Object value = root;
+        List<Method> result = new ArrayList<Method>();
 
         StringTokenizer parser = new StringTokenizer( expression, "." );
+
+        Class currentType = rootClass;
 
         while ( parser.hasMoreTokens() )
         {
             String token = parser.nextToken();
 
-            if ( value == null )
+            if ( currentType == null )
             {
-                result.clear();
                 return null;
             }
 
-            Method method = findMethod( value, token );
+            Method method = findMethod( currentType, token );
 
             if ( method == null )
             {
-                result.clear();
                 return null;
             }
 
             result.add( method );
-            value = method.invoke( value, OBJECT_ARGS );
+
+            currentType = method.getReturnType();
         }
-        return value;
+        return result;
     }
 
-    private static Method findMethod( Object currentObject, String token )
+    private static Method findMethod( Class currentObjectClass, String token )
         throws MethodMap.AmbiguousException
     {
-
         String methodBase = StringUtils.capitalizeFirstLetter( token );
 
-        return populateMethodCache( currentObject.getClass(), methodBase );
+        return populateMethodCache( currentObjectClass, methodBase );
 
     }
 
@@ -156,7 +154,7 @@ public class ReflectionPathBuilder
      * from public superclasses and interfaces (if they exist). Basically
      * upcasts every method to the nearest acccessible method.
      */
-    static Method[] getAccessibleMethods( Class<?> clazz, Set<String> desiredMethods )
+    private static Method[] getAccessibleMethods( Class<?> clazz, Set<String> desiredMethods )
     {
         List<Method> toUse = new ArrayList<Method>();
         for ( Method method : clazz.getMethods() )

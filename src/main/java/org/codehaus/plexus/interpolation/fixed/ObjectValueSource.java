@@ -17,7 +17,7 @@ package org.codehaus.plexus.interpolation.fixed;
  */
 
 
-import org.codehaus.plexus.interpolation.reflection.ReflectionValueExtractor;
+import org.codehaus.plexus.interpolation.reflection.PathElement;
 
 /**
  * Wraps an object, providing reflective access to the object graph of which the
@@ -26,20 +26,40 @@ import org.codehaus.plexus.interpolation.reflection.ReflectionValueExtractor;
  * 'rootObject.getChild().isName()' for boolean properties.
  * @version $Id$
  */
-public class ObjectBasedValueSource
+public class ObjectValueSource
     implements FixedValueSource
 {
 
     private final Object root;
+
+    private final InterpolationExpressionCache expressionCache;
 
     /**
      * Construct a new value source, using the supplied object as the root from
      * which to start, and using expressions split at the dot ('.') to navigate
      * the object graph beneath this root.
      */
-    public ObjectBasedValueSource( Object root )
+    public ObjectValueSource( Object root )
+    {
+
+        this( root, new InterpolationExpressionCache(root.getClass()));
+    }
+
+    public static FixedValueSource asObjectValueSource(Object object){
+        return new ObjectValueSource( object );
+    }
+
+    /**
+     * Construct a new value source, using the supplied object as the root from
+     * which to start, and using expressions split at the dot ('.') to navigate
+     * the object graph beneath this root.
+     * @param root The instance to use as a root for evaluating expressions
+     * @param expressionCache The cache for optimized expression evaluation
+     */
+    public ObjectValueSource( Object root, InterpolationExpressionCache expressionCache )
     {
         this.root = root;
+        this.expressionCache = expressionCache;
     }
 
     /**
@@ -58,10 +78,11 @@ public class ObjectBasedValueSource
         {
             return null;
         }
-        
+
         try
         {
-            return ReflectionValueExtractor.evaluate( expression, root, false );
+            PathElement path = expressionCache.getPath( expression );
+            return path.evaluate( root );
         }
         catch ( Exception e )
         {
