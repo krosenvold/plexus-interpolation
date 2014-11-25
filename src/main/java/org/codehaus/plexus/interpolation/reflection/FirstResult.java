@@ -3,16 +3,16 @@ package org.codehaus.plexus.interpolation.reflection;
 public class FirstResult
 {
 
-    private final PathElement2 path;
+    private final PathElement path;
     private final Object value;
 
-    public FirstResult( PathElement2 path, Object value )
+    public FirstResult( PathElement path, Object value )
     {
         this.path = path;
         this.value = value;
     }
 
-    public PathElement2 getPath()
+    public PathElement getPath()
     {
         return path;
     }

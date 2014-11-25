@@ -46,25 +46,26 @@ public class ReflectionPathBuilder
     public static FirstResult createPath( String expression, boolean trimRootToken, Object root )
         throws Exception
     {
-
-        // if the root token refers to the supplied root object parameter, remove it.
         if ( trimRootToken )
         {
             expression = expression.substring( expression.indexOf( '.' ) + 1 );
         }
 
-
-        List<Method> result = new ArrayList<Method>(  );
-        final Object o = evaluateZZ( expression, root, result );
-        if (o == null) return null; // Nothing. Maybe use some kind fo identityPathElement or other bollocks
-        PathElement2 pe2 = null;
-        for (int i = result.size() - 1; i>= 0; i--){
-            pe2 = PathElement2.createPathElement2( result.get( i ), pe2 );
+        List<Method> result = new ArrayList<Method>();
+        final Object o = evaluate( expression, root, result );
+        if ( o == null && result.size() == 0 )
+        {
+            return null;
         }
-        return new FirstResult( pe2, o );
+        PathElement pathElement = null;
+        for ( int i = result.size() - 1; i >= 0; i-- )
+        {
+            pathElement = PathElement.createPathElement( result.get( i ), pathElement );
+        }
+        return new FirstResult( pathElement, o );
     }
 
-    private static Object evaluateZZ( String expression, Object root, List<Method> result )
+    private static Object evaluate( String expression, Object root, List<Method> result )
         throws Exception
     {
         Object value = root;
@@ -77,6 +78,7 @@ public class ReflectionPathBuilder
 
             if ( value == null )
             {
+                result.clear();
                 return null;
             }
 
@@ -84,65 +86,15 @@ public class ReflectionPathBuilder
 
             if ( method == null )
             {
+                result.clear();
                 return null;
             }
 
-            result.add(  method);
+            result.add( method );
             value = method.invoke( value, OBJECT_ARGS );
         }
-
         return value;
     }
-
-    private static PathElement2 evaluate( String expression, Object root, boolean trimRootToken )
-        throws Exception
-    {
-        // if the root token refers to the supplied root object parameter, remove it.
-        if ( trimRootToken )
-        {
-            expression = expression.substring( expression.indexOf( '.' ) + 1 );
-        }
-
-        Object value = root;
-
-        // ----------------------------------------------------------------------
-        // Walk the dots and retrieve the ultimate value desired from the
-        // MavenProject instance.
-        // ----------------------------------------------------------------------
-
-        StringTokenizer parser = new StringTokenizer( expression, "." );
-
-        return evaluate(  root, parser );
-    }
-
-    private static PathElement2 evaluate( Object currentObject, StringTokenizer parser )
-        throws Exception
-    {
-        String token = parser.nextToken();
-
-        if ( currentObject == null )
-        {
-            return null;
-        }
-
-        Method method = findMethod( currentObject, token );
-
-        if ( method == null )
-        {
-            return null;
-        }
-
-        Object value = method.invoke( currentObject, OBJECT_ARGS );
-        if ( parser.hasMoreTokens() )
-        {
-            return PathElement2.createPathElement2( method, evaluate( value, parser ) );
-        }
-        else
-        {
-            return PathElement2.createFinalElement( method );
-        }
-    }
-
 
     private static Method findMethod( Object currentObject, String token )
         throws MethodMap.AmbiguousException
@@ -162,7 +114,7 @@ public class ReflectionPathBuilder
         String getter = "get" + methodBase;
         String isMethod = "is" + methodBase;
 
-        Set<String> desiredMethods = new HashSet<String>(  );
+        Set<String> desiredMethods = new HashSet<String>();
         desiredMethods.add( getter );
         desiredMethods.add( isMethod );
         Method[] methods = getAccessibleMethods( clazz, desiredMethods );
@@ -191,7 +143,10 @@ public class ReflectionPathBuilder
         }
 
         final Method method = methodMap.find( getter, CLASS_ARGS );
-        if (method != null) return method;
+        if ( method != null )
+        {
+            return method;
+        }
         return methodMap.find( isMethod, CLASS_ARGS );
     }
 
@@ -203,10 +158,13 @@ public class ReflectionPathBuilder
      */
     static Method[] getAccessibleMethods( Class<?> clazz, Set<String> desiredMethods )
     {
-        List<Method> toUse = new ArrayList<Method>(  );
+        List<Method> toUse = new ArrayList<Method>();
         for ( Method method : clazz.getMethods() )
         {
-            if (desiredMethods.contains(  method.getName())) toUse.add( method);
+            if ( desiredMethods.contains( method.getName() ) )
+            {
+                toUse.add( method );
+            }
         }
         Method[] methods = toUse.toArray( new Method[toUse.size()] );
 
