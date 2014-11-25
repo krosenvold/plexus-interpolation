@@ -163,7 +163,7 @@ public class ReflectionPathBuilder
         {
             if ( desiredMethods.contains( method.getName() ) )
             {
-                toUse.add( method );
+                toUse.add( findBestMatchingMethod( method ));
             }
         }
         Method[] methods = toUse.toArray( new Method[toUse.size()] );
@@ -210,6 +210,26 @@ public class ReflectionPathBuilder
             }
         }
         return methods;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private static Method findBestMatchingMethod( Method method )
+    {
+        Method best = method;
+        Class parent = method.getDeclaringClass().getSuperclass();
+        while ( parent != null )
+        {
+            try
+            {
+                best = parent.getMethod( method.getName(), method.getParameterTypes() );
+            }
+            catch ( NoSuchMethodException nonebetter )
+            {
+                return best;
+            }
+            parent = parent.getSuperclass();
+        }
+        return best;
     }
 
 
