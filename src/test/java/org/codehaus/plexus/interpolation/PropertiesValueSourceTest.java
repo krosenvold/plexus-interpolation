@@ -20,7 +20,7 @@ import java.util.Properties;
 
 import junit.framework.TestCase;
 
-public class PropertiesBasedValueSourceTest
+public class PropertiesValueSourceTest
     extends TestCase
 {
 

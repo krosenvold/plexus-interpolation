@@ -42,7 +42,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "test.label", "test" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "<expression>", "</expression>" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "<expression>", "</expression>" );
 
         assertEquals( result, interpolator.interpolate( src ) );
     }
@@ -57,7 +57,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "test.label", "test" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "<expression>", "</expression>" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "<expression>", "</expression>" );
 
         assertEquals( result, interpolator.interpolate( src ) );
     }
@@ -72,7 +72,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "test.label", "test" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "<expression>", "</expression>" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "<expression>", "</expression>" );
 
         assertEquals( result, interpolator.interpolate( src ) );
     }
@@ -87,7 +87,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "test.label", "test" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "<expression>", "</expression>" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "<expression>", "</expression>" );
 
         assertEquals( result, interpolator.interpolate( src ) );
     }
@@ -98,7 +98,7 @@ public class FixedStringSearchInterpolatorTest
         Properties p = new Properties();
         p.setProperty( "key", "value" );
 
-        FixedStringSearchInterpolator interpolator = create( new PropertiesBasedValueSource( p ) );
+        FixedStringSearchInterpolator interpolator = create( new PropertiesValueSource( p ) );
 
         assertEquals( "This is a test value.", interpolator.interpolate( "This is a test ${key}." ) );
     }
@@ -110,7 +110,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "key", "value" );
         p.setProperty( "key2", "value2" );
 
-        FixedStringSearchInterpolator interpolator = create( new PropertiesBasedValueSource( p ) );
+        FixedStringSearchInterpolator interpolator = create( new PropertiesValueSource( p ) );
 
         assertEquals( "value-value2", interpolator.interpolate( "${key}-${key2}" ) );
     }
@@ -121,7 +121,7 @@ public class FixedStringSearchInterpolatorTest
         Properties p = new Properties();
         p.setProperty( "key", "value" );
 
-        FixedStringSearchInterpolator interpolator = create( new PropertiesBasedValueSource( p ) );
+        FixedStringSearchInterpolator interpolator = create( new PropertiesValueSource( p ) );
 
         assertEquals( "This is a test ${key.", interpolator.interpolate( "This is a test ${key." ) );
     }
@@ -133,7 +133,7 @@ public class FixedStringSearchInterpolatorTest
         props.setProperty( "key1", "${key2}" );
         props.setProperty( "key2", "${key1}" );
 
-        FixedStringSearchInterpolator rbi = create( new PropertiesBasedValueSource( props ) );
+        FixedStringSearchInterpolator rbi = create( new PropertiesValueSource( props ) );
 
         try
         {
@@ -151,7 +151,7 @@ public class FixedStringSearchInterpolatorTest
     public void testShouldResolveByMy_getVar_Method()
         throws InterpolationException
     {
-        FixedStringSearchInterpolator rbi = create( new ObjectBasedValueSource( this ) );
+        FixedStringSearchInterpolator rbi = create( new ObjectValueSource( this ) );
         String result = rbi.interpolate( "this is a ${var}" );
 
         assertEquals( "this is a testVar", result );
@@ -238,7 +238,7 @@ public class FixedStringSearchInterpolatorTest
         Properties p = new Properties();
         p.setProperty( "key", "value" );
 
-        FixedStringSearchInterpolator interpolator = create( "@{", "}", new PropertiesBasedValueSource( p ) );
+        FixedStringSearchInterpolator interpolator = create( "@{", "}", new PropertiesValueSource( p ) );
 
         assertEquals( "This is a test value.", interpolator.interpolate( "This is a test @{key}." ) );
     }
@@ -251,7 +251,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "key", "value" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "\\" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "\\" );
 
         String result = interpolator.interpolate( "This is a test \\@{key}." );
 
@@ -266,7 +266,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "key", "value" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "$$" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "$$" );
 
         String result = interpolator.interpolate( "This is a test $$@{key}." );
 
@@ -281,7 +281,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "key", "value" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "$$" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "$$" );
 
         String result = interpolator.interpolate( "$$@{key} This is a test." );
 
@@ -296,7 +296,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "key", "value" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "$$" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "$$" );
 
         String result = interpolator.interpolate( "@{key} This is a test." );
 
@@ -311,7 +311,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "key", "value" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( null );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( null );
 
         String result = interpolator.interpolate( "This is a test @{key}." );
 
@@ -326,7 +326,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "key", "value" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "\\" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "\\" );
 
         String result = interpolator.interpolate( "\\@{key} This is a test." );
 
@@ -341,7 +341,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "key", "value" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "\\" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "\\" );
 
         String result = interpolator.interpolate( "@{key} This is a test." );
 
@@ -356,7 +356,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "key", "value" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "@", "@" ).withEscapeString( "\\" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "@", "@" ).withEscapeString( "\\" );
 
         String result = interpolator.interpolate( "\\@key@ This is a test @key@." );
 
@@ -371,7 +371,7 @@ public class FixedStringSearchInterpolatorTest
         p.setProperty( "key", "value" );
 
         FixedStringSearchInterpolator interpolator =
-            create( new PropertiesBasedValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "\\" );
+            create( new PropertiesValueSource( p ) ).withExpressionMarkers( "@{", "}" ).withEscapeString( "\\" );
 
         String result = interpolator.interpolate( null );
 
@@ -499,14 +499,14 @@ public class FixedStringSearchInterpolatorTest
 
     }
 
-    private PropertiesBasedValueSource properttyBasedValueSource( String... values )
+    private PropertiesValueSource properttyBasedValueSource( String... values )
     {
         Properties p = new Properties();
         for ( int i = 0; i < values.length; i += 2 )
         {
             p.setProperty( values[i], values[i + 1] );
         }
-        return new PropertiesBasedValueSource( p );
+        return new PropertiesValueSource( p );
     }
 }
 
