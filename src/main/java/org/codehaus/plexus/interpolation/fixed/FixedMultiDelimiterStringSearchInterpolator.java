@@ -35,14 +35,16 @@ public class FixedMultiDelimiterStringSearchInterpolator
 
     private final LinkedHashSet<DelimiterSpecification> delimiters;
 
-    private String escapeString;
+    private final String escapeString;
 
     public FixedMultiDelimiterStringSearchInterpolator( List<FixedValueSource> valueSources, InterpolationPostProcessor postProcessors,
-                                                        LinkedHashSet<DelimiterSpecification> delimiters )
+                                                        LinkedHashSet<DelimiterSpecification> delimiters,
+                                                        String escapeString )
     {
         this.valueSources = valueSources;
         this.postProcessors = postProcessors;
         this.delimiters = delimiters;
+        this.escapeString = escapeString;
         this.delimiters.add( DelimiterSpecification.DEFAULT_SPEC );
     }
 
@@ -50,14 +52,20 @@ public class FixedMultiDelimiterStringSearchInterpolator
     {
         LinkedHashSet<DelimiterSpecification> delimiters = new LinkedHashSet<DelimiterSpecification>( 1 );
         delimiters.add(DelimiterSpecification.DEFAULT_SPEC );
-        return new FixedMultiDelimiterStringSearchInterpolator( new ArrayList<FixedValueSource>(  ), null,  delimiters);
+        return new FixedMultiDelimiterStringSearchInterpolator( new ArrayList<FixedValueSource>(  ), null,  delimiters,
+                                                                null );
     }
 
     public FixedMultiDelimiterStringSearchInterpolator withDelimiterSpec( DelimiterSpecification vs )
     {
         LinkedHashSet<DelimiterSpecification> newList = new LinkedHashSet<DelimiterSpecification>( delimiters );
         newList.add( vs);
-        return new FixedMultiDelimiterStringSearchInterpolator( valueSources, postProcessors, newList);
+        return new FixedMultiDelimiterStringSearchInterpolator( valueSources, postProcessors, newList, escapeString );
+    }
+
+    public FixedMultiDelimiterStringSearchInterpolator withEscapeString( String escapeString )
+    {
+        return new FixedMultiDelimiterStringSearchInterpolator( valueSources, postProcessors, delimiters, escapeString );
     }
 
     public FixedMultiDelimiterStringSearchInterpolator withDelimiterSpec( String delimiterSpec )
@@ -95,7 +103,7 @@ public class FixedMultiDelimiterStringSearchInterpolator
 
     public FixedMultiDelimiterStringSearchInterpolator withPostProcessor( InterpolationPostProcessor postProcessor )
     {
-        return new FixedMultiDelimiterStringSearchInterpolator( valueSources, postProcessor, delimiters );
+        return new FixedMultiDelimiterStringSearchInterpolator( valueSources, postProcessor, delimiters, escapeString );
     }
 
     /**
